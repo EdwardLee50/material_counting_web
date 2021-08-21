@@ -6,7 +6,7 @@
       element-loading-text="Loading"
       border
       fit
-      highlight-current-row
+      highlight-current-rowx
     >
       <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">

@@ -8,6 +8,14 @@ export function getOrders(params) {
   })
 }
 
+export function getOrderPages(params) {
+    return request({
+        url: '/order/query',
+        method: 'GET',
+        params
+    })
+}
+
 export function batchUpdateStatus(data) {
     return request({
         url: '/order/orders',
