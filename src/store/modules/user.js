@@ -35,7 +35,7 @@ const mutations = {
         state.tel = tel
     },
     SET_ROLE: (state, role) => {
-        state.avatar = role
+        state.role = role
     }
 }
 

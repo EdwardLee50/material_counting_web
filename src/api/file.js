@@ -1,17 +1,19 @@
 import request from '@/utils/request'
 
-export function upload(data) {
-    return request({
-        url: '/file/upload',
-        method: 'post',
-        data
-    })
-}
-
-export function download(params) {
-    return request({
-        url: '/file/download',
-        method: 'get',
-        params: { params }
-    })
-}
+// 直接写在页面上了
+// export function upload(form) {
+//     return request({
+//         url: '/file/upload',
+//         method: 'post',
+//         headers: {'Content-Type': 'multipart/form-data'},
+//         data:form
+//     })
+// }
+// export function download(file_name) {
+//     return request({
+//         url: '/file/download',
+//         method: 'get',
+//         params: {file_name: file_name},
+//         responseType: 'blob'
+//     })
+// }

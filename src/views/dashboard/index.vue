@@ -1,16 +1,23 @@
 <template>
-    <el-collapse v-model="activeName" accordion>
-        <div v-for="(item,index) in items" :key="item.name">
-            <el-collapse-item :name="item.name" style="margin-left: 10px">
-                <template slot="title">
-                    <i class="header-icon el-icon-s-home"></i>{{item.title}}
-                </template>
-                <template v-for="(section,index) in item.content">
-                    <div>{{section}}</div>
-                </template>
-            </el-collapse-item>
-        </div>
-    </el-collapse>
+    <el-card class="app-container">
+        <el-collapse v-model="activeName" accordion>
+            <div v-for="(item,index) in items" :key="item.name">
+                <el-collapse-item :name="item.name" style="margin-left: 10px">
+                    <template slot="title">
+                        <i class="header-icon el-icon-s-home"></i>{{item.title}}
+                    </template>
+                    <template v-for="(section,index) in item.content">
+                        <div>{{section}}</div>
+                    </template>
+                </el-collapse-item>
+                <div class="demo-image">
+                    <div class="demonstration">状态转换流程简述</div>
+                    <el-image :src="src" style="width: 50%"></el-image>
+                </div>
+            </div>
+        </el-collapse>
+    </el-card>
+
 </template>
 
 <script>
@@ -19,6 +26,8 @@
         name: 'Dashboard',
         data() {
             return {
+                // 图片位置
+                src: require('@/assets/状态转换图.png'),
                 // 对应items中的每一个name,设置默认展开
                 activeName: 1,
                 items: [

@@ -1,57 +1,221 @@
 <template>
-    <div>
-        <div align="center">
-            <el-upload
-                    class="upload-demo"
-                    drag
-                    action="http://localhost:8080/file/upload"
-                    :auto-upload="false"
-                    multiple>
-                <i class="el-icon-upload"></i>
-                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
-            </el-upload>
-        </div>
-        <div>
-            <el-table :data="editList" border>
-                <el-table-column label="tab1">
+    <div class="app-container">
+        <!--弹窗-->
+        <el-dialog :title="dialogTitle" width="25%" :visible.sync="iconFormVisible">
+            <el-form :model="orderInfo">
+                <el-form-item label="商家电话" required>
+                    <el-input v-model="orderInfo.shopSellerTel" placeholder="姓名"></el-input>
+                </el-form-item>
+                <el-form-item label="物料名称" required>
+                    <el-input v-model="orderInfo.material" placeholder="日期"></el-input>
+                </el-form-item>
+                <el-form-item label="计量单位" required>
+                    <el-input v-model="orderInfo.unit" placeholder="地址"></el-input>
+                </el-form-item>
+                <el-form-item label="数量" required>
+                    <el-input v-model="orderInfo.number" placeholder="年龄"></el-input>
+                </el-form-item>
+                <el-form-item label="描述">
+                    <el-input v-model="orderInfo.description" type="textarea" placeholder="描述"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="iconFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitOrder()">确 定</el-button>
+            </div>
+        </el-dialog>
+        <!--增删改查-->
+        <!--按钮、表格-->
+        <el-card class="box-card" style="margin-top: 5px">
+            <el-divider content-position="left">Excel导入</el-divider>
+            <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
+                <el-upload
+                        ref="upload"
+                        :limit="1"
+                        accept=".xlsx, .xls"
+                        :headers="upload.headers"
+                        :action="upload.url"
+                        :disabled="upload.isUploading"
+                        :on-success="handleSuccess"
+                        :on-error="handleError"
+                        :on-change="handleChange"
+                        :auto-upload="false"
+                        drag
+                >
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">
+                        将文件拖到此处，或<em>点击上传</em>
+                    </div>
+                    <div class="el-upload__tip" slot="tip">
+                        <el-link type="warning" @click="download('example.xlsx')">
+                            下载模板
+                        </el-link>
+                    </div>
+                    <div class="el-upload__tip" style="color:#ff0000" slot="tip">
+                        提示：仅允许导入 .xls 或 xlsx 格式文件，且格式需与模板格式相同
+                    </div>
+                </el-upload>
+                <div slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="uploadFile">确 定 上 传</el-button>
+                    <el-button @click="cancelUpload">取消/清空上传列表</el-button>
+                </div>
+            </el-dialog>
+            <el-button size="small" @click="download('example.xlsx')">下载模板</el-button>
+            <el-button size="small" type="primary" @click="openExcelImport">开启Excel批量导入</el-button>
+            <el-divider content-position="left">手动录入</el-divider>
+
+            <el-button type="primary" size="small" @click="add">增加</el-button>
+            <el-button type="success" size="small" @click="add">提交</el-button>
+            <el-table :data="tableData" stripe>
+                <el-table-column label="商家电话" prop="shopSellerTel" align="center">
                     <template slot-scope="scope">
-                        <el-input placeholder="请输入内容" v-show="scope.row.showInput" v-model="scope.row.tab1"></el-input>
-                        <span v-show="!scope.row.showInput">{{scope.row.tab1}}</span>
+                        <span>{{ scope.row.shopSellerTel }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="tab2">
+                <el-table-column label="物料名称" prop="material" align="center">
                     <template slot-scope="scope">
-                        <el-input placeholder="请输入内容" v-show="scope.row.showInput" v-model="scope.row.tab2"></el-input>
-                        <span v-show="!scope.row.showInput">{{scope.row.tab2}}</span>
+                        {{ scope.row.material }}
                     </template>
                 </el-table-column>
-                <el-table-column label="操作">
+                <el-table-column label="计量单位" prop="unit" width="60" align="center">
                     <template slot-scope="scope">
-                        <el-button @click="scope.row.showInput =true">编辑</el-button>
-                        <el-button @click="scope.row.showInput =false">保存</el-button>
+                        {{ scope.row.unit }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="数量" prop="number" width="60" align="center">
+                    <template slot-scope="scope">
+                        {{ scope.row.number }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="描述" prop="description" align="center">
+                    <template slot-scope="scope">
+                        {{ scope.row.description }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" fixed="right" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑
+                        </el-button>
+                        <el-button type="danger" size="small" @click="remove(scope.$index, scope.row)">删除
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
-        </div>
+        </el-card>
     </div>
 </template>
 <script>
-    import {upload} from "@/api/file";
+    import {getToken} from "@/utils/auth";
+    import {batchCreateByExcel} from "@/api/order";
 
     export default {
         data() {
             return {
-                editList: [
-                    {tab1: '111', tab2: '2222', showInput: true},
-                    {tab1: 'aaa', tab2: 'bbb', showInput: false}
-                ],
-            }
+                iconFormVisible: false,
+                orderInfo: {},
+                dialogTitle: '增加',
+                rowIndex: null,
+                tableData: [],
+                // 导入参数
+                upload: {
+                    // 是否显示弹出层
+                    open: false,
+                    // 弹出层标题
+                    title: "",
+                    // 设置上传的请求头部
+                    headers: {MC_TOKEN: getToken()},
+                    // 是否禁用上传
+                    isUploading: false,
+                    // 上传的地址
+                    url: process.env.VUE_APP_BASE_API + "/batch/add/upload",
+                },
+            };
+        },
+        created() {
         },
         methods: {
-            upload(file){
+            // 手动创建相关
+            // 增加
+            add() {
+                this.dialogTitle = '增加';
+                this.orderInfo = {};
+                this.iconFormVisible = true;
+            },
+            // 编辑
+            handleEdit(index, row) {
+                this.dialogTitle = '编辑';
+                this.orderInfo = row;
+                this.iconFormVisible = true;
+                this.rowIndex = index;
+            },
+            // 弹窗确定
+            submitOrder() {
+                if (this.dialogTitle === '编辑') {
+                    this.tableData.splice(this.rowIndex, 1, this.orderInfo);
+                    this.iconFormVisible = false;
+                    return;
+                }
+                this.tableData.splice(0, 0, this.orderInfo);
+                this.iconFormVisible = false;
+            },
+            // 删除
+            remove(index, row) {
+                this.$confirm(`确定删除${row.name}吗?`, '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'error',
+                }).then(() => {
+                    this.tableData.splice(index, 1);
+                });
+            },
 
-            }
+
+            // 文件相关
+            // 样例下载
+            download(fileName) {
+                const aTag = document.createElement("a")
+                aTag.href = "http://localhost:8080/file/download?file_name=" + fileName
+                aTag.click()
+            },
+            // 文件上传相关
+            // 文件上传成功时的钩子
+            handleSuccess(res, file, fileList) {
+                if (res.code === 10000) {
+                    this.$message({
+                        type: "success",
+                        center: true,
+                        message: '文件上传成功'
+                    });
+                } else {
+                    this.$message({
+                        type: "error",
+                        center: true,
+                        message: '导入失败，失败原因：' + res.message
+                    });
+                }
+                // 清空已上传文件
+                this.$refs.upload.clearFiles()
+            },
+            // 文件上传失败时的钩子
+            handleError(err, file, fileList) {
+                this.$message.error('文件上传失败');
+                console.log(err)
+            },
+            handleChange(file, fileList) {
+            },
+            uploadFile() {
+                this.$refs.upload.submit();
+                this.upload.open = false
+            },
+            openExcelImport() {
+                this.upload.open = true
+            },
+            cancelUpload() {
+                // 清空已上传文件
+                this.$refs.upload.clearFiles()
+                this.$refs.upload.abort()
+                this.upload.open = false
+            },
         }
     }
 </script>

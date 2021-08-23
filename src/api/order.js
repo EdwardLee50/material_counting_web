@@ -10,7 +10,7 @@ export function getOrders(params) {
 
 export function getOrderPages(params) {
     return request({
-        url: '/order/query',
+        url: '/order/query/page',
         method: 'GET',
         params
     })
@@ -19,6 +19,14 @@ export function getOrderPages(params) {
 export function batchUpdateStatus(data) {
     return request({
         url: '/order/orders',
+        method: 'POST',
+        data
+    })
+}
+
+export function batchCreateByExcel(data) {
+    return request({
+        url: '/batch/add/byExcel',
         method: 'POST',
         data
     })
