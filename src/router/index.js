@@ -109,25 +109,14 @@ export const asyncRoutes = [
                     icon: 'table'
                 }
             },
-            // 批量签收
+            // 批量签收或存疑
             {
-                path: 'batchSignIn',
-                name: 'batchSignIn',
-                component: () => import('@/views/orderManagement/batchSignIn/index'),
+                path: 'batchSignInOrInDoubt',
+                name: 'batchSignInOrInDoubt',
+                component: () => import('@/views/orderManagement/batchSignInOrInDoubt/index'),
                 meta: {
                     roles: ['admin', 'seller'],
-                    title: '批量签收',
-                    icon: 'table'
-                }
-            },
-            // 批量存疑
-            {
-                path: 'batchInDoubt',
-                name: 'batchInDoubt',
-                component: () => import('@/views/orderManagement/batchInDoubt/index'),
-                meta: {
-                    roles: ['admin', 'seller'],
-                    title: '批量存疑',
+                    title: '批量签收或存疑',
                     icon: 'table'
                 }
             },

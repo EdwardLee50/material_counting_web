@@ -1,33 +1,21 @@
 <template>
     <div class="app-container">
-        <!--弹窗-->
-        <el-dialog :title="dialogTitle" width="25%" :visible.sync="iconFormVisible">
-            <el-form :model="orderInfo">
-                <el-form-item label="商家电话" required>
-                    <el-input v-model="orderInfo.shopSellerTel" placeholder="姓名"></el-input>
-                </el-form-item>
-                <el-form-item label="物料名称" required>
-                    <el-input v-model="orderInfo.material" placeholder="日期"></el-input>
-                </el-form-item>
-                <el-form-item label="计量单位" required>
-                    <el-input v-model="orderInfo.unit" placeholder="地址"></el-input>
-                </el-form-item>
-                <el-form-item label="数量" required>
-                    <el-input v-model="orderInfo.number" placeholder="年龄"></el-input>
-                </el-form-item>
-                <el-form-item label="描述">
-                    <el-input v-model="orderInfo.description" type="textarea" placeholder="描述"></el-input>
-                </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="iconFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="submitOrder()">确 定</el-button>
-            </div>
-        </el-dialog>
-        <!--增删改查-->
         <!--按钮、表格-->
-        <el-card class="box-card" style="margin-top: 5px">
+        <!--Excel导入-->
+        <el-card>
+            iconFormVisible：{{iconFormVisible}}||
+            <br>
+            orderInfo：{{orderInfo}}||
+            <br>
+            dialogTitle：{{dialogTitle}}||
+            <br>
+            rowIndex：{{rowIndex}}||
+            <br>
+            tableData：{{tableData}}
             <el-divider content-position="left">Excel导入</el-divider>
+            <el-button size="small" type="danger" @click="download('example.xlsx')">下载模板</el-button>
+            <el-button size="small" type="primary" @click="openExcelImport">开启Excel批量导入</el-button>
+            <!--Excel导入弹窗-->
             <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
                 <el-upload
                         ref="upload"
@@ -47,25 +35,26 @@
                         将文件拖到此处，或<em>点击上传</em>
                     </div>
                     <div class="el-upload__tip" slot="tip">
-                        <el-link type="warning" @click="download('example.xlsx')">
+                        <el-link type="danger" @click="download('example.xlsx')">
                             下载模板
                         </el-link>
                     </div>
                     <div class="el-upload__tip" style="color:#ff0000" slot="tip">
-                        提示：仅允许导入 .xls 或 xlsx 格式文件，且格式需与模板格式相同
+                        提示：请先下载模板！！！仅允许导入 .xls 或 xlsx 格式文件，且格式需与模板格式相同
                     </div>
                 </el-upload>
                 <div slot="footer" class="dialog-footer">
-                    <el-button type="primary" @click="uploadFile">确 定 上 传</el-button>
+                    <el-button type="success" @click="uploadFile">确 定 上 传</el-button>
                     <el-button @click="cancelUpload">取消/清空上传列表</el-button>
                 </div>
             </el-dialog>
-            <el-button size="small" @click="download('example.xlsx')">下载模板</el-button>
-            <el-button size="small" type="primary" @click="openExcelImport">开启Excel批量导入</el-button>
-            <el-divider content-position="left">手动录入</el-divider>
+        </el-card>
 
-            <el-button type="primary" size="small" @click="add">增加</el-button>
-            <el-button type="success" size="small" @click="add">提交</el-button>
+        <!--手动录入-->
+        <el-card>
+            <el-divider content-position="left">手动录入</el-divider>
+            <el-button type="primary" size="small" @click="add">新增</el-button>
+            <el-button type="success" size="small" @click="handleManualCreate">提交</el-button>
             <el-table :data="tableData" stripe>
                 <el-table-column label="商家电话" prop="shopSellerTel" align="center">
                     <template slot-scope="scope">
@@ -101,18 +90,48 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <!--手动录入弹窗-->
+            <el-dialog :title="dialogTitle" width="25%" :visible.sync="iconFormVisible">
+                <el-form ref="manualDialog" :model="orderInfo">
+                    <el-form-item label="商家电话" required prop="orderInfo.tel">
+                        <el-input v-model="orderInfo.shopSellerTel" placeholder="姓名"></el-input>
+                    </el-form-item>
+                    <el-form-item label="物料名称" required prop="orderInfo.material">
+                        <el-input v-model="orderInfo.material" placeholder="日期"></el-input>
+                    </el-form-item>
+                    <el-form-item label="计量单位" required prop="unit">
+                        <el-input v-model="orderInfo.unit" placeholder="地址"></el-input>
+                    </el-form-item>
+                    <el-form-item label="数量" required prop="number">
+                        <el-input v-model="orderInfo.number" placeholder="年龄"></el-input>
+                    </el-form-item>
+                    <el-form-item label="描述" prop="description">
+                        <el-input v-model="orderInfo.description" type="textarea" placeholder="描述"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="iconFormVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="submitOrder()">确 定</el-button>
+                </div>
+            </el-dialog>
         </el-card>
     </div>
 </template>
 <script>
     import {getToken} from "@/utils/auth";
-    import {batchCreateByExcel} from "@/api/order";
+    import {batchCreateOrders} from "@/api/order";
 
     export default {
         data() {
             return {
                 iconFormVisible: false,
-                orderInfo: {},
+                orderInfo: {
+                    tel: null,
+                    material:null,
+                    unit:null,
+                    number:null,
+                    description:null
+                },
                 dialogTitle: '增加',
                 rowIndex: null,
                 tableData: [],
@@ -135,6 +154,7 @@
         },
         methods: {
             // 手动创建相关
+            // 表格相关
             // 增加
             add() {
                 this.dialogTitle = '增加';
@@ -151,22 +171,28 @@
             // 弹窗确定
             submitOrder() {
                 if (this.dialogTitle === '编辑') {
+                    // 在记录的位置删除1个，并插入1个
                     this.tableData.splice(this.rowIndex, 1, this.orderInfo);
                     this.iconFormVisible = false;
                     return;
                 }
-                this.tableData.splice(0, 0, this.orderInfo);
+                // 删除0个插入1个
+                this.tableData.splice(this.tableData.length, 0, this.orderInfo);
                 this.iconFormVisible = false;
             },
             // 删除
             remove(index, row) {
-                this.$confirm(`确定删除${row.name}吗?`, '提示', {
+                this.$confirm(`确定删除第${index + 1}行吗?`, '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'error',
                 }).then(() => {
                     this.tableData.splice(index, 1);
                 });
+            },
+            // 绑定提交事件
+            handleManualCreate() {
+                console.log(this.tableData)
             },
 
 

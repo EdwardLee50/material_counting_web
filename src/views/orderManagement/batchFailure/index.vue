@@ -1,30 +1,11 @@
 <template>
     <div class="app-container">
         <el-card class="box-card" v-loading.fullscreen.lock="fullscreenLoading">
-            <div>
-                功能按键：
-                <el-button @click="batchChangeStatus(4)">批量送达</el-button>
-                <el-button @click="batchChangeStatus(1)">批量失效</el-button>
-                <el-button @click="batchChangeStatus(5)">批量签收</el-button>
-                <el-button @click="batchChangeStatus(2)">批量存疑</el-button>
-            </div>
             <!--            条件查询-->
             <div>
                 <!--                日期筛选-->
                 <el-card>
-                    <el-dropdown @command="handleStatusFilterClick">
-                        <el-button split-button>
-                            {{this.queryObject.orderInfo.status | switchStatus}}<i class="el-icon-arrow-down el-icon--right"></i>
-                        </el-button>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item :command="1">失效</el-dropdown-item>
-                            <el-dropdown-item :command="2">存疑</el-dropdown-item>
-                            <el-dropdown-item :command="3">配送中</el-dropdown-item>
-                            <el-dropdown-item :command="4">已送达</el-dropdown-item>
-                            <el-dropdown-item :command="5">已签收</el-dropdown-item>
-                            <el-dropdown-item :command="-1" divided>显示所有</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
+                    <el-button @click="batchChangeStatus(1)">批量失效</el-button>
                     <el-divider direction="vertical"></el-divider>
                     创建时间
                     <el-date-picker v-model="queryObject.dataDate"
@@ -181,7 +162,7 @@
                         material: null,
                         unit: null,
                         number: null,
-                        status: -1,
+                        status: 2,
                         sellerId: null,
                         employeeId: null,
                     }
@@ -269,7 +250,7 @@
                     })
                 } else {
                     // 选择项大于 0 的请求进行确认
-                    this.$confirm('确认更新\t' + length + '\t条记录吗')
+                    this.$confirm('确认改变\t' + length + '\t条记录吗')
                         .then(async () => {
                             // 获取 orderId 和状态
                             const list = []
@@ -303,193 +284,6 @@
                                 type: 'error',
                                 center: true,
                                 message: message + length + '\t条记录执行失败'
-                            })
-                        })
-                }
-            },
-            // 批量确认
-            batchConfirm() {
-                const length = this.selectedItems == null ? 0 : this.selectedItems.length
-                if (length <= 0) {
-                    this.$message({
-                        type: 'error',
-                        center: true,
-                        message: '当前无选中记录'
-                    })
-                } else {
-                    // 选择项大于 0 的请求进行确认
-                    this.$confirm('确认更新\t' + length + '\t条记录吗')
-                        .then(async () => {
-                            // 获取 orderId 和状态
-                            const list = []
-                            for (let i = 0; i < this.selectedItems.length; i++) {
-                                if (this.selectedItems[i].status !== 3) {
-                                    throw new Error("非法状态更新，请检查所选项状态。")
-                                }
-                                const id = this.selectedItems[i].id
-                                list.push({id: id, status: 4})
-                            }
-                            // 获取全局遮罩禁止用户操作
-                            let loadingInstance = this.$loading({
-                                fullscreen: true,
-                            })
-                            console.log(loadingInstance)
-                            this.$nextTick(() => { // 以服务的方式调用的 Loading 需要异步关闭
-                                loadingInstance.close();
-                            });
-                            this.fullscreenLoading = true
-                            await batchUpdateStatus(list)
-                            this.fullscreenLoading = false
-                            // // 清空选择项和表格选中状态
-                            this.selectedItems = null
-                            this.$refs.multipleTable.clearSelection()
-                            // 重新获取数据
-                            this.fetchData()
-                            this.$message({
-                                type: 'success',
-                                center: true,
-                                message: length + '\t条记录执行成功'
-                            })
-                        })
-                        .catch((error) => {
-                            console.log(error.message)
-                            let message = "";
-                            if (error.message !== null && error.message !== undefined) {
-                                message = error.message
-                            }
-                            this.$message({
-                                type: 'error',
-                                center: true,
-                                message: message + length + '\t条记录执行失败'
-                            })
-                        })
-                }
-            },
-            // 批量失效
-            batchFailure() {
-                const length = this.selectedItems == null ? 0 : this.selectedItems.length
-                if (length <= 0) {
-                    this.$message({
-                        type: 'error',
-                        center: true,
-                        message: '当前无选中记录'
-                    })
-                } else {
-                    // 选择项大于 0 的请求进行确认
-                    this.$confirm('确认签收\t' + length + '\t条记录吗')
-                        .then(async () => {
-                            // 获取 orderId 和
-                            const list = []
-                            for (let i = 0; i < this.selectedItems.length; i++) {
-                                if (this.selectedItems[i].status !== 3 && this.selectedItems[i].status !== 2) {
-                                    throw new Error("非法状态更新，请检查所选项状态。")
-                                }
-                                const id = this.selectedItems[i].id
-                                list.push({id: id, status: 5})
-                            }
-                            await batchUpdateStatus(list)
-                            // // 清空选择项和表格选中状态
-                            this.selectedItems = null
-                            this.$refs.multipleTable.clearSelection()
-                            // 重新获取数据
-                            this.fetchData()
-                            this.$message({
-                                type: 'success',
-                                center: true,
-                                message: length + '\t条记录执行成功'
-                            })
-                        })
-                        .catch((error) => {
-                            this.$message({
-                                type: 'error',
-                                center: true,
-                                message: error.message + '\t' + length + '\t条记录执行失败'
-                            })
-                        })
-                }
-            },
-            // 批量签收
-            batchSignIn() {
-                const length = this.selectedItems == null ? 0 : this.selectedItems.length
-                if (length <= 0) {
-                    this.$message({
-                        type: 'error',
-                        center: true,
-                        message: '当前无选中记录'
-                    })
-                } else {
-                    // 选择项大于 0 的请求进行确认
-                    this.$confirm('确认签收\t' + length + '\t条记录吗')
-                        .then(async () => {
-                            // 获取 orderId 和
-                            const list = []
-                            for (let i = 0; i < this.selectedItems.length; i++) {
-                                if (this.selectedItems[i].status !== 4) {
-                                    throw new Error("非法状态更新，请检查所选项状态。")
-                                }
-                                const id = this.selectedItems[i].id
-                                list.push({id: id, status: 5})
-                            }
-                            await batchUpdateStatus(list)
-                            // // 清空选择项和表格选中状态
-                            this.selectedItems = null
-                            this.$refs.multipleTable.clearSelection()
-                            // 重新获取数据
-                            this.fetchData()
-                            this.$message({
-                                type: 'success',
-                                center: true,
-                                message: length + '\t条记录执行成功'
-                            })
-                        })
-                        .catch((error) => {
-                            this.$message({
-                                type: 'error',
-                                center: true,
-                                message: error.message + '\t' + length + '\t条记录执行失败'
-                            })
-                        })
-                }
-            },
-            // 批量存疑
-            batchInDoubt() {
-                const length = this.selectedItems == null ? 0 : this.selectedItems.length
-                if (length <= 0) {
-                    this.$message({
-                        type: 'error',
-                        center: true,
-                        message: '当前无选中记录'
-                    })
-                } else {
-                    // 选择项大于 0 的请求进行确认
-                    this.$confirm('确认存疑\t' + length + '\t条记录吗')
-                        .then(async () => {
-                            // 获取 orderId 和
-                            const list = []
-                            for (let i = 0; i < this.selectedItems.length; i++) {
-                                if (this.selectedItems[i].status !== 4) {
-                                    throw new Error("非法状态更新，请检查所选项状态。")
-                                }
-                                const id = this.selectedItems[i].id
-                                list.push({id: id, status: 2})
-                            }
-                            await batchUpdateStatus(list)
-                            // // 清空选择项和表格选中状态
-                            this.selectedItems = null
-                            this.$refs.multipleTable.clearSelection()
-                            // 重新获取数据
-                            this.fetchData()
-                            this.$message({
-                                type: 'success',
-                                center: true,
-                                message: length + '\t条记录执行成功'
-                            })
-                        })
-                        .catch((error) => {
-                            this.$message({
-                                type: 'error',
-                                center: true,
-                                message: error.message + '\t' + length + '\t条记录执行失败'
                             })
                         })
                 }
