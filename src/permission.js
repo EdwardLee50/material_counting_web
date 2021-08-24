@@ -30,35 +30,40 @@ router.beforeEach(async (to, from, next) => {
             next({path: '/'})
             NProgress.done()
         } else {
-            const hasGetUserRole = store.getters.role
+            let hasRole = store.state.user.role
 
             // 判断用户是否通过getInfo获得了权限角色
-            if (hasGetUserRole) {
+            if (hasRole) {
                 next()
             } else {
                 try {
-                    // get user info
                     //  调用方法获取用户信息,await表示获得响应前阻塞
-                    await store.dispatch('user/getInfo')
+                    const {role} = await store.dispatch('user/getInfo')
+
+                    const roles = []
+                    if(role === 3){
+                        roles.push('admin')
+                    }else if(role === 1){
+                        roles.push('emp')
+                    }else{
+                        roles.push('seller')
+                    }
+
+                    //  生成基于角色的可访问路径(路由)
+                    const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+
+                    //  动态添加可访问路由,其中accessRoutes通过store中permission.js(未定义)的generateRoutes方法(action)生成,传入roles参数
+                    router.addRoutes(accessRoutes)
+
+                    // hack方法确保添加路由是彻底的,设置replace: true来保证导航不会留下历史记录
+                    next({ ...to, replace: true })
 
                     console.log("permission.js 的 router.beforeEach 中执行 getInfo" +
                         "; to.path ==> " + to.path +
                         "; from.path ==> " + from.path)
                     next()
 
-                    // //  调用方法获取用户信息,await表示获得响应前阻塞
-                    // const { role } = await store.dispatch('user/getInfo')
-                    //
-                    // //  生成基于角色的可访问路径(路由)
-                    // const accessRoutes = await store.dispatch('permission/generateRoutes', role)
-                    //
-                    // //  动态添加可访问路由,其中accessRoutes通过store中permission.js(未定义)的generateRoutes方法(action)生成,传入roles参数
-                    // router.addRoutes(accessRoutes)
-                    //
-                    // // hack方法确保添加路由是彻底的,设置replace: true来保证导航不会留下历史记录
-                    // next({ ...to, replace: true })
                 } catch (error) {
-                    // remove token and go to login page to re-login
                     //  移除token并跳转到login登录页面重新登录
                     await store.dispatch('user/resetToken')
                     Message.error(error || 'Has Error')
@@ -71,11 +76,9 @@ router.beforeEach(async (to, from, next) => {
         /* has no token*/
 
         if (whiteList.indexOf(to.path) !== -1) {
-            // in the free login whitelist, go directly
             //  在放行白名单中的页面路径直接放行
             next()
         } else {
-            // other pages that do not have permission to access are redirected to the login page.
             //  其他没有权限的访问被定位到login登录页，并以重定向后缀的形式表明跳转原路径
             next(`/login?redirect=${to.path}`)
             NProgress.done()

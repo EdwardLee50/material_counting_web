@@ -37,6 +37,20 @@ export const constantRoutes = [
         component: () => import('@/views/login/index'),
         hidden: true
     },
+    // 登录页， hidden: true 不在侧边栏显示
+    {
+        path: '/setting',
+        component: Layout,
+        redirect: '/setting/user',
+        hidden: true,
+        children: [
+            {
+                path: 'user',
+                name: 'user',
+                component: () => import('@/views/setting/index')
+            }
+        ]
+    },
     // 首页
     {
         path: '/',
@@ -55,55 +69,97 @@ export const constantRoutes = [
         component: () => import('@/views/404'),
         hidden: true
     },
+]
+
+/**
+ * asyncRoutes
+ * the routes that need to be dynamically loaded based on user roles
+ */
+export const asyncRoutes = [
     // 记录管理
     {
         path: '/orderManage',
         component: Layout,
         redirect: '/orderManage/listAll',
-        meta: {title: '物料单管理', icon: 'el-icon-s-help'},
+        meta: {
+            roles: ['admin', 'emp', 'seller'],
+            title: '物料单管理',
+            icon: 'el-icon-s-help'
+        },
         children: [
             // 筛选查看
             {
                 path: 'listAll',
                 name: 'listAll',
                 component: () => import('@/views/orderManagement/listAll/index'),
-                meta: { title: '查看及管理', icon: 'table'}
+                meta: {
+                    roles: ['admin', 'emp', 'seller'], // 与permission.js中间用于生成 roles 的 if 判断相对应
+                    title: '筛选查看',
+                    icon: 'table'
+                }
             },
             // 批量确认
-
+            {
+                path: 'batchConfirm',
+                name: 'batchConfirm',
+                component: () => import('@/views/orderManagement/batchConfirm/index'),
+                meta: {
+                    roles: ['admin', 'emp'],
+                    title: '批量确认',
+                    icon: 'table'
+                }
+            },
+            // 批量签收
+            {
+                path: 'batchSignIn',
+                name: 'batchSignIn',
+                component: () => import('@/views/orderManagement/batchSignIn/index'),
+                meta: {
+                    roles: ['admin', 'seller'],
+                    title: '批量签收',
+                    icon: 'table'
+                }
+            },
+            // 批量存疑
+            {
+                path: 'batchInDoubt',
+                name: 'batchInDoubt',
+                component: () => import('@/views/orderManagement/batchInDoubt/index'),
+                meta: {
+                    roles: ['admin', 'seller'],
+                    title: '批量存疑',
+                    icon: 'table'
+                }
+            },
             // 批量失效
-
+            {
+                path: 'batchFailure',
+                name: 'batchFailure',
+                component: () => import('@/views/orderManagement/batchFailure/index'),
+                meta: {
+                    roles: ['admin', 'emp'],
+                    title: '批量失效',
+                    icon: 'table'
+                }
+            },
             // 批量创建
             {
                 path: 'batchCreate',
                 name: 'batchCreate',
                 component: () => import('@/views/orderManagement/batchCreate/index'),
-                meta: {title: '批量创建', icon: 'el-icon-upload'}
+                meta: {
+                    roles: ['admin', 'emp'],
+                    title: '批量创建',
+                    icon: 'el-icon-upload'
+                }
             }
-            // // 查看物料单及其状态、修改状态信息 todo
-            // {
-            //     path: 'orders',
-            //     name: 'orders',
-            //     component: () => import('@/views/orderManagement/orders/index'),
-            //     meta: {title: '查看与更新', icon: 'table'}
-            // }
-            // // 可编辑表格，创建物料单、以excel表格上传todo
-            // ,{
-            //     path: 'simpleAdd',
-            //     name: 'simpleAdd',
-            //     component: () => import('@/views/orderManagement/create/index'),
-            //     meta: {title: '（批量）创建', icon: 'table'}
-            // }
         ]
     },
-
-
     // 人员管理
-
     // 404 page must be placed at the end !!!
     {path: '*', redirect: '/404', hidden: true}
-]
 
+]
 
 const createRouter = () => new Router({
     // mode: 'history', // require service support

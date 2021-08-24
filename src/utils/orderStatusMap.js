@@ -3,7 +3,7 @@ export const orderCodeStatusMap = {
     2: "存疑",
     3: "配送中",
     4: "已送达",
-    5: "已确认"
+    5: "已签收"
 }
 
 export const orderStatusColorMap = {
@@ -14,5 +14,5 @@ export const orderStatusColorMap = {
     "存疑": "danger",
     "配送中": "",
     "已送达": "warning",
-    "已确认": "success"
+    "已签收": "success"
 }
